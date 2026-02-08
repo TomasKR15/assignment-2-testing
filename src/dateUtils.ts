@@ -1,8 +1,19 @@
-import moment from "moment";
+import {
+  addDays,
+  addMinutes,
+  addMonths,
+  addSeconds,
+  addWeeks,
+  addYears,
+  isAfter,
+  isBefore,
+  isSameDay as isSameDayFn,
+} from "date-fns";
+
 import { DATE_UNIT_TYPES } from "./constants";
 
 export function getCurrentYear(): number {
-  return moment().year();
+  return new Date().getFullYear();
 }
 
 export function add(
@@ -16,32 +27,48 @@ export function add(
   if (typeof amount !== "number" || isNaN(amount)) {
     throw new Error("Invalid amount provided");
   }
-  return moment(date).add(amount, type).toDate();
+
+  switch (type) {
+    case DATE_UNIT_TYPES.SECONDS:
+      return addSeconds(date, amount);
+    case DATE_UNIT_TYPES.MINUTES:
+      return addMinutes(date, amount);
+    case DATE_UNIT_TYPES.DAYS:
+      return addDays(date, amount);
+    case DATE_UNIT_TYPES.WEEKS:
+      return addWeeks(date, amount);
+    case DATE_UNIT_TYPES.MONTHS:
+      return addMonths(date, amount);
+    case DATE_UNIT_TYPES.YEARS:
+      return addYears(date, amount);
+    default:
+      return addDays(date, amount);
+  }
 }
 
 export function isWithinRange(date: Date, from: Date, to: Date): boolean {
-  if (moment(from).isAfter(to)) {
+  if (isAfter(from, to)) {
     throw new Error("Invalid range: from date must be before to date");
   }
-  return moment(date).isBetween(from, to);
+
+  return isAfter(date, from) && isBefore(date, to);
 }
 
 export function isDateBefore(date: Date, compareDate: Date): boolean {
-  return moment(date).isBefore(compareDate);
+  return isBefore(date, compareDate);
 }
 
 export function isSameDay(date: Date, compareDate: Date): boolean {
-  return moment(date).isSame(compareDate, "day");
+  return isSameDayFn(date, compareDate);
 }
 
-// Simulates fetching holidays from an API
 export async function getHolidays(year: number): Promise<Date[]> {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve([
-        new Date(year, 0, 1), // New Year's Day
-        new Date(year, 11, 25), // Christmas
-        new Date(year, 11, 31), // New Year's Eve
+        new Date(year, 0, 1), 
+        new Date(year, 11, 25), 
+        new Date(year, 11, 31), 
       ]);
     }, 100);
   });
